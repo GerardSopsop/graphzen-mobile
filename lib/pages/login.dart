@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'register.dart';
-import 'checklist.dart';
+import 'view_checklist.dart';
 
 class Login extends StatelessWidget {
   const Login({Key? key}) : super(key: key);

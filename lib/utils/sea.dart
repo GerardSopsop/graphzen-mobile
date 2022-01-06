@@ -8,7 +8,7 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart'
     hide RSAPrivateKey, RSAPublicKey;
 import 'package:encrypt/encrypt.dart' hide SecureRandom;
 import 'package:asn1lib/asn1lib.dart';
-import "package:pointycastle/export.dart";
+import "package:pointycastle/export.dart" hide Signer, RSASigner;
 import 'package:crypto/crypto.dart';
 
 import 'pair.dart';
@@ -80,34 +80,38 @@ class SEA {
     return Pair(pubStr, privStr);
   }
 
-  static String encrypt(String data, Pair pair) {
-    var cipher = RSAEngine()
-      ..init(true, PublicKeyParameter<RSAPublicKey>(pair.pub as RSAPublicKey));
-    var cipherText = cipher.process(Uint8List.fromList(data.codeUnits));
+  static String encrypt(String data, Pair key) {
+    final publicKey = parseRSAPublicKeyPEM(key.pub);
+    final privKey = parseRSAPrivateKeyPEM(key.priv);
 
-    return String.fromCharCodes(cipherText);
+    final encrypter = Encrypter(RSA(publicKey: publicKey, privateKey: privKey));
+    return encrypter.encrypt(data).base64;
   }
 
-  static String decrypt(String data, Pair pair) {
-    final publicKey = parseRSAPublicKeyPEM(pair.pub);
-    final privKey = parseRSAPrivateKeyPEM(pair.priv);
+  static String decrypt(String data, Pair key) {
+    final publicKey = parseRSAPublicKeyPEM(key.pub);
+    final privKey = parseRSAPrivateKeyPEM(key.priv);
 
     final decrypter = Encrypter(RSA(publicKey: publicKey, privateKey: privKey));
     return decrypter.decrypt(Encrypted.fromBase64(data));
   }
 
-  static String sign(String data, Pair pair) {
-    final sha256Sign = hash(data);
-    final rsa256Sign = encrypt(sha256Sign, pair);
+  static String sign(String data, Pair key) {
+    final publicKey = parseRSAPublicKeyPEM(key.pub);
+    final privKey = parseRSAPrivateKeyPEM(key.priv);
+    final signer = Signer(RSASigner(RSASignDigest.SHA256,
+        publicKey: publicKey, privateKey: privKey));
 
-    return data + rsa256Sign;
+    return signer.sign(data).base64;
   }
 
-  static bool verify(String data, Pair pair) {
-    final sha256Sign = hash(data);
-    final rsa256Sign = decrypt(data, pair);
+  static bool verify(Pair key, String data, String expected) {
+    final publicKey = parseRSAPublicKeyPEM(key.pub);
+    final privKey = parseRSAPrivateKeyPEM(key.priv);
+    final signer = Signer(RSASigner(RSASignDigest.SHA256,
+        publicKey: publicKey, privateKey: privKey));
 
-    return sha256Sign == rsa256Sign;
+    return signer.verify64(data, expected);
   }
 
   static String hash(String data) {
