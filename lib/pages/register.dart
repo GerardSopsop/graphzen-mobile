@@ -1,8 +1,9 @@
+import 'package:work/utils/sea.dart';
+import 'package:work/utils/pair.dart';
+
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-
-import 'class.dart';
 
 class Registration extends StatelessWidget {
   const Registration({Key? key}) : super(key: key);
@@ -96,8 +97,7 @@ class _RegisterState extends State<Register> {
               }, version: 1);
               final db = await database;
               try {
-                List temp1 =
-                    await db.query("userkeys WHERE alias = '${username.text}'");
+                await db.query("userkeys WHERE alias = '${username.text}'");
                 Pair pair = SEA.pair();
                 await db.insert('userkeys', {
                   'alias': username.text,

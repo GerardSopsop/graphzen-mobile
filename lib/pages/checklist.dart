@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
-import 'class.dart';
-import 'config_check.dart';
+import 'config_checklist.dart';
 import 'sign_task.dart';
 
 class Checklist extends StatelessWidget {

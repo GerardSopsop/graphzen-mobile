@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'view_task.dart';
-import 'class.dart';
-
 class ConfigCheck extends StatelessWidget {
   const ConfigCheck({Key? key}) : super(key: key);
 

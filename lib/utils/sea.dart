@@ -11,12 +11,7 @@ import 'package:asn1lib/asn1lib.dart';
 import "package:pointycastle/export.dart";
 import 'package:crypto/crypto.dart';
 
-class Pair {
-  String pub;
-  String priv;
-
-  Pair(this.pub, this.priv);
-}
+import 'pair.dart';
 
 class SEA {
   static Pair pair() {
@@ -121,51 +116,15 @@ class SEA {
 
   static String work(String data, int length) {
     var rand = Random();
-
     return List.generate(length, (index) => data[rand.nextInt(data.length)])
         .join();
   }
-}
 
-class Identity {
-  String alias;
-  Pair pair;
-
-  Identity(this.alias, this.pair);
-
-  static Identity fromPair(String alias, Pair pair) {
-    return Identity(alias, pair);
+  static void encryptFile(String path, Pair key) {
+    throw ("Not yet made");
   }
 
-  getID() {
-    return pair.pub;
+  static void decryptFile(String path, Pair key) {
+    throw ("Not yet made");
   }
-
-  sign(String data) {
-    return SEA.sign(data, pair);
-  }
-}
-
-class Task {
-  String id;
-  String label;
-  List<Task> children;
-
-  Task(this.id, this.label, this.children);
-}
-
-class Progress {
-  String taskId;
-
-  Progress(this.taskId);
-}
-
-class Checklist {
-  String id;
-  String name;
-  String version;
-  List<Task> tasks;
-  Progress progress;
-
-  Checklist(this.id, this.name, this.version, this.tasks, this.progress);
 }

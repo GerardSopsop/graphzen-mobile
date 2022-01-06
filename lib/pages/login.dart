@@ -103,8 +103,7 @@ class _UserLoginState extends State<UserLogin> {
                   openDatabase(join(await getDatabasesPath(), 'graphzen.db'));
               final db = await database;
               try {
-                List temp =
-                    await db.query("userkeys WHERE alias = '${username.text}'");
+                await db.query("userkeys WHERE alias = '${username.text}'");
                 db.close();
                 nameFound = true;
                 passWrong = false;
