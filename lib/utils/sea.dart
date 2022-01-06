@@ -16,9 +16,6 @@ import 'package:crypto/crypto.dart';
 
 import 'pair.dart';
 
-final passKey = base64Url
-    .encode(List<int>.generate(32, (i) => Random.secure().nextInt(256)));
-
 class SEA {
   static Pair pair() {
     final _secureRandom = SecureRandom('Fortuna')
@@ -130,14 +127,16 @@ class SEA {
   }
 
   static String work(String data, int length) {
-    var rand = Random();
-    return List.generate(length, (index) => data[rand.nextInt(data.length)])
-        .join();
+    return String.fromCharCodes(
+        KeyDerivator('Scrypt').process(Uint8List.fromList(data.codeUnits)));
   }
 
   static void encryptFile(String path, Pair key) {
+    final passKey = base64Url
+        .encode(List<int>.generate(32, (i) => Random.secure().nextInt(256)));
+
     var crypt = AesCrypt();
-    crypt.setPassword(encrypt(passKey, key));
+    crypt.setPassword(passKey);
     crypt.setOverwriteMode(AesCryptOwMode.on);
 
     try {
@@ -147,9 +146,9 @@ class SEA {
     }
   }
 
-  static void decryptFile(String path, Pair key) {
+  static void decryptFile(String path, Pair key, String password) {
     var crypt = AesCrypt();
-    crypt.setPassword(decrypt(encrypt(passKey, key), key));
+    crypt.setPassword(decrypt(password, key));
     crypt.setOverwriteMode(AesCryptOwMode.on);
 
     try {
