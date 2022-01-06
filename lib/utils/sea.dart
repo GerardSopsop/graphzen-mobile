@@ -4,14 +4,20 @@ import 'dart:typed_data';
 
 // ignore: implementation_imports
 import 'package:pointycastle/src/platform_check/platform_check.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:aes_crypt/aes_crypt.dart';
+
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart'
     hide RSAPrivateKey, RSAPublicKey;
 import 'package:encrypt/encrypt.dart' hide SecureRandom;
-import 'package:asn1lib/asn1lib.dart';
 import "package:pointycastle/export.dart" hide Signer, RSASigner;
+import 'package:asn1lib/asn1lib.dart';
 import 'package:crypto/crypto.dart';
 
 import 'pair.dart';
+
+final passKey = base64Url
+    .encode(List<int>.generate(32, (i) => Random.secure().nextInt(256)));
 
 class SEA {
   static Pair pair() {
@@ -97,19 +103,24 @@ class SEA {
   }
 
   static String sign(String data, Pair key) {
-    final publicKey = parseRSAPublicKeyPEM(key.pub);
     final privKey = parseRSAPrivateKeyPEM(key.priv);
-    final signer = Signer(RSASigner(RSASignDigest.SHA256,
-        publicKey: publicKey, privateKey: privKey));
+    final signer = Signer(RSASigner(RSASignDigest.SHA256, privateKey: privKey));
 
     return signer.sign(data).base64;
   }
 
   static bool verify(Pair key, String data, String expected) {
     final publicKey = parseRSAPublicKeyPEM(key.pub);
-    final privKey = parseRSAPrivateKeyPEM(key.priv);
-    final signer = Signer(RSASigner(RSASignDigest.SHA256,
-        publicKey: publicKey, privateKey: privKey));
+    final signer =
+        Signer(RSASigner(RSASignDigest.SHA256, publicKey: publicKey));
+
+    return signer.verify64(data, expected);
+  }
+
+  static bool verifyViaAddress(String pub, String data, String expected) {
+    final publicKey = parseRSAPublicKeyPEM(pub);
+    final signer =
+        Signer(RSASigner(RSASignDigest.SHA256, publicKey: publicKey));
 
     return signer.verify64(data, expected);
   }
@@ -125,10 +136,26 @@ class SEA {
   }
 
   static void encryptFile(String path, Pair key) {
-    throw ("Not yet made");
+    var crypt = AesCrypt();
+    crypt.setPassword(encrypt(passKey, key));
+    crypt.setOverwriteMode(AesCryptOwMode.on);
+
+    try {
+      crypt.encryptFileSync(path);
+    } on AesCryptException {
+      throw ("Error in File Encryption!");
+    }
   }
 
   static void decryptFile(String path, Pair key) {
-    throw ("Not yet made");
+    var crypt = AesCrypt();
+    crypt.setPassword(decrypt(encrypt(passKey, key), key));
+    crypt.setOverwriteMode(AesCryptOwMode.on);
+
+    try {
+      crypt.decryptFileSync(path);
+    } on AesCryptException {
+      throw ("Error in File Decryption!");
+    }
   }
 }
