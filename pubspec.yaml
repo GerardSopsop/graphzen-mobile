@@ -42,6 +42,7 @@ dependencies:
   crypto: ^3.0.1
   flutter_speed_dial: ^5.0.0+1
   aes_crypt: ^0.1.1
+  archive: ^3.1.8
 
 dev_dependencies:
   flutter_test:
