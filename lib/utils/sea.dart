@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:io';
 
 // ignore: implementation_imports
 import 'package:pointycastle/src/platform_check/platform_check.dart';
@@ -11,8 +12,10 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart'
     hide RSAPrivateKey, RSAPublicKey;
 import 'package:encrypt/encrypt.dart' hide SecureRandom;
 import "package:pointycastle/export.dart" hide Signer, RSASigner;
+import 'package:path/path.dart' as path;
 import 'package:asn1lib/asn1lib.dart';
 import 'package:crypto/crypto.dart';
+import 'package:archive/archive_io.dart';
 
 import 'pair.dart';
 
@@ -131,28 +134,50 @@ class SEA {
         KeyDerivator('Scrypt').process(Uint8List.fromList(data.codeUnits)));
   }
 
-  static void encryptFile(String path, Pair key) {
+  static void encryptFile(String filename, Pair key) {
     final passKey = base64Url
         .encode(List<int>.generate(32, (i) => Random.secure().nextInt(256)));
 
     var crypt = AesCrypt();
     crypt.setPassword(passKey);
     crypt.setOverwriteMode(AesCryptOwMode.on);
-
     try {
-      crypt.encryptFileSync(path);
+      File sign = File('sign.txt');
+      sign.writeAsString(encrypt(passKey, key));
+      final String encrypted = crypt.encryptFileSync(filename);
+      var encoder = ZipFileEncoder();
+      encoder.create('${path.basenameWithoutExtension(filename)}.zip');
+      encoder.addFile(File(encrypted));
+      encoder.addFile(sign);
+      encoder.close();
     } on AesCryptException {
       throw ("Error in File Encryption!");
     }
   }
 
-  static void decryptFile(String path, Pair key, String password) {
+  static void decryptFile(String filename, Pair key) async {
+    final bytes = File(filename).readAsBytesSync();
+    final archive = ZipDecoder().decodeBytes(bytes);
+    for (final file in archive) {
+      final name = file.name;
+      if (file.isFile) {
+        final data = file.content as List<int>;
+        File('${path.dirname(filename)}/' + name)
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(data);
+      }
+    }
+
+    String sign =
+        await File('${path.dirname(filename)}/sign.txt').readAsString();
+
     var crypt = AesCrypt();
-    crypt.setPassword(decrypt(password, key));
+    crypt.setPassword(decrypt(sign, key));
     crypt.setOverwriteMode(AesCryptOwMode.on);
 
     try {
-      crypt.decryptFileSync(path);
+      crypt.decryptFileSync(
+          '${path.dirname(filename)}/${path.basenameWithoutExtension(filename)}.txt.aes');
     } on AesCryptException {
       throw ("Error in File Decryption!");
     }
