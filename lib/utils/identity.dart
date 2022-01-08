@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'pair.dart';
 import 'sea.dart';
 
@@ -11,12 +13,13 @@ class Identity {
     return Identity(alias, pair);
   }
 
-  static Identity fromJson(String alias, Pair pair) {
-    throw ("Not yet made");
+  static Identity fromJson(String jsonData) {
+    final data = jsonDecode(jsonData);
+    return Identity(data['alias'], data['pair']);
   }
 
   toJson() {
-    throw ("Not yet made");
+    return '{"alias":$alias,"pair":{"pub":${pair.pub},"priv":${pair.priv}}}';
   }
 
   getID() {
