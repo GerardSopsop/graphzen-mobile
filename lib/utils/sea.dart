@@ -88,9 +88,8 @@ class SEA {
 
   static String encrypt(String data, Pair key) {
     final publicKey = parseRSAPublicKeyPEM(key.pub);
-    final privKey = parseRSAPrivateKeyPEM(key.priv);
 
-    final encrypter = Encrypter(RSA(publicKey: publicKey, privateKey: privKey));
+    final encrypter = Encrypter(RSA(publicKey: publicKey));
     return encrypter.encrypt(data).base64;
   }
 
@@ -102,10 +101,9 @@ class SEA {
   }
 
   static String decrypt(String data, Pair key) {
-    final publicKey = parseRSAPublicKeyPEM(key.pub);
     final privKey = parseRSAPrivateKeyPEM(key.priv);
 
-    final decrypter = Encrypter(RSA(publicKey: publicKey, privateKey: privKey));
+    final decrypter = Encrypter(RSA(privateKey: privKey));
     return decrypter.decrypt(Encrypted.fromBase64(data));
   }
 
