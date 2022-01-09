@@ -166,27 +166,6 @@ class SEA {
     }
   }
 
-  static void encryptFileForAddress(String filename, String pub) async {
-    final passKey = base64Url
-        .encode(List<int>.generate(32, (i) => Random.secure().nextInt(256)));
-
-    var crypt = AesCrypt();
-    crypt.setPassword(passKey);
-    crypt.setOverwriteMode(AesCryptOwMode.on);
-    try {
-      File sign = File('sign.txt');
-      sign.writeAsString(encryptForAddress(passKey, pub));
-      final String encrypted = crypt.encryptFileSync(filename);
-      var encoder = ZipFileEncoder();
-      encoder.create('${path.basenameWithoutExtension(filename)}.zip');
-      encoder.addFile(File(encrypted));
-      encoder.addFile(sign);
-      encoder.close();
-    } on AesCryptException {
-      throw ("Error in File Encryption!");
-    }
-  }
-
   static void decryptFile(String filename, Pair key) async {
     final bytes = File(filename).readAsBytesSync();
     final archive = ZipDecoder().decodeBytes(bytes);
