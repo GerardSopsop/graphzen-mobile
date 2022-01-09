@@ -134,6 +134,12 @@ class SEA {
     return sha256.convert(utf8.encode(data)).toString();
   }
 
+  static Future<String> hashFile(String filename) async {
+    return sha256
+        .convert(utf8.encode(await File(filename).readAsString()))
+        .toString();
+  }
+
   static String work(String data, int length) {
     return String.fromCharCodes(
         KeyDerivator('Scrypt').process(Uint8List.fromList(data.codeUnits)));
